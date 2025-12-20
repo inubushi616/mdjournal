@@ -46,6 +46,8 @@ tags:
     description: カレンダー用の集計データ
   - name: Config
     description: 設定の管理（プロジェクト・ルーチン）
+  - name: Git
+    description: Git連携（状態取得）
   - name: GoogleCalendar
     description: Googleカレンダー連携
 
@@ -259,6 +261,32 @@ paths:
                 $ref: "#/components/schemas/Config"
         "400":
           description: リクエストが不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ========================================
+  # Git連携API
+  # ========================================
+  /git/status:
+    get:
+      tags:
+        - Git
+      summary: Git状態取得
+      description: |
+        リポジトリのGit状態（未コミットファイル、未プッシュコミット）を取得します。
+        保存ダイアログでコミット・プッシュ対象を表示するために使用します。
+      operationId: getGitStatus
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GitStatus"
+        "500":
+          description: Git操作エラー
           content:
             application/json:
               schema:
@@ -783,6 +811,57 @@ components:
           type: string
           description: タスク名
           example: "面談スケジュール調整"
+
+    # ----------------------------------------
+    # Git状態
+    # ----------------------------------------
+    GitStatus:
+      type: object
+      required:
+        - uncommitted
+        - unpushed
+      properties:
+        uncommitted:
+          type: array
+          description: 未コミットファイル一覧
+          items:
+            type: string
+          example:
+            - "reports/2025/12/2025-12-18.md"
+            - "reports/2025/12/2025-12-19.md"
+        unpushed:
+          type: array
+          description: 未プッシュコミット一覧
+          items:
+            $ref: "#/components/schemas/UnpushedCommit"
+
+    UnpushedCommit:
+      type: object
+      required:
+        - hash
+        - message
+        - date
+        - files
+      properties:
+        hash:
+          type: string
+          description: コミットハッシュ（短縮形）
+          example: "a1b2c3d"
+        message:
+          type: string
+          description: コミットメッセージ
+          example: "日報更新: 2025-12-18"
+        date:
+          type: string
+          description: コミット日時
+          example: "2025-12-18 17:30:00"
+        files:
+          type: array
+          description: コミットに含まれるファイル一覧
+          items:
+            type: string
+          example:
+            - "reports/2025/12/2025-12-18.md"
 
     # ----------------------------------------
     # Googleカレンダー
