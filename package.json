@@ -1,0 +1,38 @@
+{
+  "name": "@mdjournal/monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "mdJournal - Markdown日報を視覚的に管理するダッシュボード",
+  "author": "foo-ogawa",
+  "license": "MIT",
+  "homepage": "https://github.com/foo-ogawa/mdjournal#readme",
+  "bugs": {
+    "url": "https://github.com/foo-ogawa/mdjournal/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/foo-ogawa/mdjournal.git"
+  },
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "npm run build --workspace=client",
+    "build:server": "npm run build --workspace=server",
+    "start": "npm run start --workspace=server",
+    "test": "npm run test --workspace=server --if-present",
+    "lint": "npm run lint --workspace=server && npm run lint --workspace=client",
+    "clean": "rm -rf server/dist client/dist"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
+

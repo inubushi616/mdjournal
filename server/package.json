@@ -4,6 +4,7 @@
   "description": "Markdown日報を視覚的に管理するダッシュボードアプリケーション",
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "mdjournal": "./dist/cli.js"
   },
@@ -12,7 +13,9 @@
     "dev:watch": "tsx watch src/cli.ts",
     "build": "tsc",
     "start": "node dist/cli.js",
-    "lint": "eslint src --ext .ts"
+    "test": "echo \"No tests yet\" && exit 0",
+    "lint": "eslint src --ext .ts",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -34,7 +37,7 @@
   },
   "files": [
     "dist",
-    "sample"
+    "README.md"
   ],
   "keywords": [
     "daily-report",
@@ -42,12 +45,20 @@
     "dashboard",
     "markdown",
     "todo",
-    "timeline"
+    "timeline",
+    "time-tracking"
   ],
+  "author": "foo-ogawa",
+  "license": "MIT",
+  "homepage": "https://github.com/foo-ogawa/mdjournal#readme",
+  "bugs": {
+    "url": "https://github.com/foo-ogawa/mdjournal/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/mdjournal"
+    "url": "git+https://github.com/foo-ogawa/mdjournal.git"
   },
-  "license": "MIT",
-  "author": ""
+  "engines": {
+    "node": ">=20.0.0"
+  }
 }
