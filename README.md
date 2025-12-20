@@ -15,8 +15,49 @@
 - ⏱️ **タイムライン** - 計画と実績を並べて表示、ドラッグ&ドロップで編集
 - ✅ **TODO管理** - プロジェクト別・ステータス別のタスク管理
 - 📝 **Markdown編集** - 慣れ親しんだMarkdown形式でデータを管理
-- 🔗 **外部連携** - Git、Slack、Googleカレンダーとの連携
-- 🔌 **拡張機能** - TypeScriptで独自の連携機能を追加可能
+- 🔗 **外部連携** - Git、Slackとの連携
+
+---
+
+## 📋 機能一覧
+
+### ダッシュボード
+
+| 機能 | 状態 | 説明 |
+|------|:----:|------|
+| カレンダービュー（月表示） | ✅ | 稼働時間を円ゲージで可視化 |
+| タイムライン | ✅ | 計画(PLAN)と実績(RESULT)の並列表示 |
+| タイムスロットのドラッグ&ドロップ | ✅ | 時間調整（スナップ単位で） |
+| TODO一覧 | ✅ | プロジェクト別・ステータス別表示 |
+| TODOステータス変更 | ✅ | 未着手→進行中→完了→保留 |
+| プロジェクト一覧 | ✅ | 残TODO件数表示 |
+| プロジェクトフィルタ | ✅ | 選択したプロジェクトでフィルタリング |
+| Markdownエディタ | ✅ | 日報のMarkdown直接編集 |
+| ルーチン取り込み | ✅ | 曜日別・月次・四半期・年次ルーチン |
+| レイアウトカスタマイズ | 🚧 | パネル配置の変更（部分実装） |
+| ダークモード | ❌ | 未実装 |
+
+### 外部連携
+
+| 機能 | 状態 | 説明 |
+|------|:----:|------|
+| Git連携（Commit/Push） | ✅ | ローカルリポジトリと自動連携 |
+| Slack投稿（Webhook） | ✅ | 日報をSlackチャンネルに投稿 |
+| Googleカレンダー連携 | ❌ | 未実装（APIはモックのみ） |
+| 拡張機能システム | ❌ | 未実装 |
+
+### CLIツール
+
+| 機能 | 状態 | 説明 |
+|------|:----:|------|
+| サーバー起動 | ✅ | `npx mdjournal [config.yaml]` |
+| バリデーション | ✅ | `npx mdjournal validate <path>` |
+| 統計情報再集計 | ✅ | `npx mdjournal stats <path>` |
+| 設定ファイルチェック | ✅ | `npx mdjournal config <config.yaml>` |
+
+**凡例**: ✅ 実装済み / 🚧 部分実装 / ❌ 未実装
+
+---
 
 ## 🚀 クイックスタート
 
@@ -59,6 +100,12 @@ timeline:
 
 server:
   port: 3001
+
+# Slack連携（オプション）
+slack:
+  enabled: false
+  webhookUrl: ${SLACK_WEBHOOK_URL}
+  channel: "#daily_report"
 ```
 
 ### 日報ファイルのバリデーション
@@ -160,57 +207,27 @@ my-journals/
 
 ### Git連携
 
-日報保存時に自動でcommit/pushを実行できます。
+日報ディレクトリがGitリポジトリ内にある場合、保存時に「Commit & Push」ボタンからcommit/pushを実行できます。
 
 ### Slack連携
 
-日報をSlackチャンネルに投稿できます。
+Webhook URLを設定することで、日報をSlackチャンネルに投稿できます。
 
-### Googleカレンダー連携
-
-Googleカレンダーの予定をPLANに取り込めます。
-
-詳細は [integration-spec.md](./docs/integration-spec.md) を参照してください。
-
-## 🔌 拡張機能
-
-TypeScriptで独自の連携機能を追加できます。
-
-```typescript
-// extensions/my-extension.ts
-import { IntegrationExtension } from 'mdjournal/types';
-
-const myExtension: IntegrationExtension = {
-  meta: {
-    id: 'my-extension',
-    name: 'カスタム連携',
-    type: 'integration',
-  },
-  isEnabled: () => true,
-  actions: [
-    {
-      id: 'custom-action',
-      name: 'カスタムアクション',
-      execute: async (params) => {
-        // 独自の処理
-        return { success: true };
-      },
-    },
-  ],
-};
-
-export default myExtension;
+```yaml
+# mdjournal.config.yaml
+slack:
+  enabled: true
+  webhookUrl: ${SLACK_WEBHOOK_URL}  # 環境変数から取得
+  channel: "#daily_report"
+  username: "日報"
+  iconEmoji: ":memo:"
 ```
-
-詳細は [extension-spec.md](./docs/extension-spec.md) を参照してください。
 
 ## 📚 ドキュメント
 
 - [要求仕様書](./docs/requirements.md)
 - [Markdownフォーマット仕様](./docs/markdown-format-spec.md)
 - [設定ファイル仕様](./docs/config-spec.md)
-- [外部連携仕様](./docs/integration-spec.md)
-- [拡張機能仕様](./docs/extension-spec.md)
 - [API仕様 (OpenAPI)](./docs/openapi.yaml)
 
 ## 🛠️ 開発
@@ -250,4 +267,3 @@ MIT License
 ---
 
 **mdJournal** - Markdown日報をもっと便利に
-

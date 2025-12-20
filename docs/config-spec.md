@@ -13,7 +13,6 @@
 | `mdjournal.config.yaml` | ルート設定ファイル |
 | `config/projects.yaml` | プロジェクトマスタ |
 | `config/routines.yaml` | ルーチン定義 |
-| `config/integrations.yaml` | 外部連携設定 |
 
 ---
 
@@ -40,7 +39,14 @@ timeline:
 # サーバー設定
 server:
   port: number             # サーバーポート
-  cors: string             # CORSで許可するオリジン
+
+# Slack連携（オプション）
+slack:
+  enabled: boolean         # 有効/無効
+  webhookUrl: string       # Webhook URL（${SLACK_WEBHOOK_URL}で環境変数参照可能）
+  channel: string          # 投稿先チャンネル（オプション）
+  username: string         # 投稿者名（オプション）
+  iconEmoji: string        # アイコン絵文字（オプション）
 ```
 
 ### 3.2 設定例
@@ -70,7 +76,14 @@ timeline:
 # サーバー設定（オプション）
 server:
   port: 3001
-  cors: http://localhost:5173
+
+# Slack連携（オプション）
+slack:
+  enabled: false
+  webhookUrl: ${SLACK_WEBHOOK_URL}
+  channel: "#daily_report"
+  username: "日報"
+  iconEmoji: ":memo:"
 ```
 
 ---
@@ -86,19 +99,19 @@ projects:
     name: string           # プロジェクト名
     fullName: string       # フルネーム（オプション）
     color: string          # 表示色（Hex）
-    category: string       # カテゴリID
+    category: string       # カテゴリID（オプション）
     client: string         # クライアント名（オプション）
     description: string    # 説明（オプション）
     active: boolean        # アクティブ状態
 
-# カテゴリ定義
+# カテゴリ定義（オプション）
 categories:
   - id: string
     name: string
     color: string          # オプション
 ```
 
-### 4.2 完全な設定例
+### 4.2 設定例
 
 ```yaml
 projects:
@@ -122,35 +135,8 @@ projects:
   
   - code: "P14"
     name: "システムB"
-    fullName: "システムB"
     color: "#722ed1"
     category: "client"
-    active: true
-
-  - code: "P08"
-    name: "サービスC"
-    color: "#eb2f96"
-    category: "client"
-    active: true
-
-  - code: "P37"
-    name: "クライアントD"
-    fullName: "クライアントD"
-    color: "#fa8c16"
-    category: "client"
-    client: "D社"
-    active: true
-
-  - code: "P25"
-    name: "プロジェクトE"
-    color: "#13c2c2"
-    category: "client"
-    active: true
-
-  - code: "904"
-    name: "研究プロジェクト"
-    color: "#2f54eb"
-    category: "research"
     active: true
 
   # 非アクティブプロジェクト
@@ -172,10 +158,6 @@ categories:
   - id: "research"
     name: "研究・開発"
     color: "#722ed1"
-  
-  - id: "personal"
-    name: "個人"
-    color: "#8c8c8c"
 ```
 
 ---
@@ -229,7 +211,7 @@ MonthlyTask:
   task: string
 ```
 
-### 5.2 完全な設定例
+### 5.2 設定例
 
 ```yaml
 routines:
@@ -241,36 +223,11 @@ routines:
       - time: "09:00"
         project: "P99"
         task: "定例会議"
-      - time: "09:30"
-        project: "P37"
-        task: "クライアントD デイリー"
-      - time: "10:30"
-        project: "P99"
-        task: "管理部門MTG"
     
     tuesday:
       - time: "08:00"
         project: "P99"
         task: "タスク確認・整理、日報返信"
-      - time: "09:30"
-        project: "P99"
-        task: "経営会議"
-    
-    wednesday:
-      - time: "08:00"
-        project: "P99"
-        task: "タスク確認・整理、日報返信"
-      - time: "10:00"
-        project: "P14"
-        task: "システムB 週次MTG"
-    
-    thursday:
-      - time: "08:00"
-        project: "P99"
-        task: "タスク確認・整理、日報返信"
-      - time: "15:00"
-        project: "P99"
-        task: "全社会"
     
     friday:
       - time: "08:00"
@@ -289,21 +246,12 @@ routines:
     start_of_month:
       - project: "P99"
         task: "経費精算申請"
-      - project: "P99"
-        task: "個人立替経費精算"
     
     end_of_month:
       - project: "P99"
         task: "面談スケジュール調整"
-      - project: "P14"
-        task: "システムB 保守工数集計"
 
   quarterly:
-    - months: [6, 12]
-      tasks:
-        - project: "P99"
-          task: "契約更新確認（半年ごと）"
-    
     - months: [3, 6, 9, 12]
       tasks:
         - project: "P99"
@@ -314,142 +262,33 @@ routines:
       day: 10
       project: "P99"
       task: "クラウドサービス契約更新"
-    
-    - month: 8
-      day: 1
-      project: "P99"
-      task: "保守契約更新"
 ```
 
 ---
 
-## 6. integrations.yaml
+## 6. Git連携
 
-外部連携設定。詳細は `integration-spec.md` を参照。
+Gitはローカルリポジトリの設定と自動連携します。設定ファイルでの明示的な設定は不要です。
 
-```yaml
-# Slack連携
-slack:
-  enabled: true
-  bot_token: "${SLACK_BOT_TOKEN}"
-  signing_secret: "${SLACK_SIGNING_SECRET}"
-  daily_report:
-    channel_id: "C0123456789"
-    channel_name: "#daily-report"
-    auto_post: false
-    post_time: "09:00"
-  todo_sync:
-    enabled: true
-    sources:
-      - type: "stars"
-      - type: "bookmarks"
-
-# Git連携
-git:
-  enabled: true
-  repo_path: "./data"
-  auto_commit:
-    enabled: true
-    on_save: true
-  auto_push:
-    enabled: false
-  commit_message:
-    template: "📝 Update daily report: {date}"
-
-# Googleカレンダー連携
-google_calendar:
-  enabled: true
-  credentials_path: "./config/google-credentials.json"
-  token_path: "./config/google-token.json"
-  calendars:
-    - id: "primary"
-      name: "メインカレンダー"
-      color: "#4285f4"
-      show: true
-  sync:
-    range_days_before: 7
-    range_days_after: 30
-    refresh_interval: 300
-
-# 勤怠連携（将来）
-attendance:
-  enabled: false
-```
+- 日報ディレクトリがGitリポジトリ内にある場合、自動的にGit連携が有効になります
+- 保存時に「Commit & Push」ボタンからcommit/pushを実行できます
 
 ---
 
-## 7. user.yaml
-
-### 7.1 スキーマ
-
-```yaml
-# ユーザー基本情報
-user:
-  name: string             # 名前
-  email: string            # メールアドレス（オプション）
-
-# 日報設定
-daily_report:
-  author_name: string      # 日報の著者名
-  template_path: string    # テンプレートファイルパス
-  default_start_time: string  # デフォルト開始時刻
-  default_end_time: string    # デフォルト終了時刻
-
-# 通知設定
-notifications:
-  reminder:
-    enabled: boolean
-    time: string           # HH:MM
-  overdue_todo:
-    enabled: boolean
-
-# ショートカット設定
-shortcuts:
-  custom: object           # カスタムショートカット定義
-```
-
-### 7.2 設定例
-
-```yaml
-user:
-  name: "サンプル太郎"
-  email: "sample@example.com"
-
-daily_report:
-  author_name: "サンプル太郎"
-  default_start_time: "08:00"
-  default_end_time: "18:00"
-
-notifications:
-  reminder:
-    enabled: true
-    time: "08:30"
-  overdue_todo:
-    enabled: true
-
-shortcuts:
-  custom:
-    "Ctrl+Shift+S": "slack_post"
-    "Ctrl+Shift+C": "git_commit"
-```
-
----
-
-## 8. 環境変数の参照
+## 7. 環境変数の参照
 
 設定ファイル内で `${ENV_VAR_NAME}` 形式で環境変数を参照可能。
 
 ```yaml
 slack:
-  bot_token: "${SLACK_BOT_TOKEN}"
-  signing_secret: "${SLACK_SIGNING_SECRET}"
+  webhookUrl: "${SLACK_WEBHOOK_URL}"
 ```
 
 実行時に環境変数の値に置換される。
 
 ---
 
-## 9. 設定ファイルのバリデーション
+## 8. 設定ファイルのバリデーション
 
 起動時に以下のバリデーションを実施：
 
@@ -465,12 +304,19 @@ slack:
 
 エラー時はログに警告を出力し、デフォルト値で補完。
 
+CLIで設定ファイルのチェックを実行することも可能：
+
+```bash
+npx mdjournal config ./mdjournal.config.yaml
+```
+
 ---
 
 ## 更新履歴
 
 | バージョン | 日付 | 更新内容 |
 |-----------|------|---------|
+| 1.1 | 2025-12-20 | 未実装の設定を削除、実装済み設定のみ記載 |
 | 1.0 | 2025-12-20 | mdJournalとして公開準備 |
 | 0.2 | 2025-12-19 | 四半期・年次ルーチンの定義を明確化 |
 | 0.1 | 2025-12-18 | 初版作成 |
