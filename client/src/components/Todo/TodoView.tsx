@@ -3,10 +3,9 @@
  * TODOリストの表示・管理
  */
 
-import { Card, Space, Typography, List, Badge, Input, Button, Alert, message, Divider } from 'antd';
+import { Card, Space, Typography, List, Badge, Input, Button, message, Divider } from 'antd';
 import {
   CheckSquareOutlined,
-  SearchOutlined,
   EditOutlined,
   WarningOutlined,
   CheckOutlined,
@@ -34,7 +33,6 @@ export const TodoView = ({ selectedProjects = [] }: TodoViewProps) => {
   const { report, config } = useDashboard();
   
   const [filter, setFilter] = useState<FilterType>('all');
-  const [searchText, setSearchText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [editingTodo, setEditingTodo] = useState<string | null>(null);
@@ -81,17 +79,16 @@ export const TodoView = ({ selectedProjects = [] }: TodoViewProps) => {
     ? allTodos.filter(todo => selectedProjects.includes(todo.project))
     : allTodos;
 
-  // 持ち越しTODO（期限切れの未完了TODO）
-  const carryOverTodos = projectFilteredTodos.filter(
-    (todo) => todo.deadline && isOverdue(todo.deadline) && todo.status !== 'completed'
-  );
-
   // フィルタリング
   const filteredTodos = projectFilteredTodos.filter((todo) => {
     if (filter !== 'all' && todo.status !== filter) return false;
-    if (searchText && !todo.task.toLowerCase().includes(searchText.toLowerCase())) return false;
     return true;
   });
+
+  // 持ち越しTODO（期限切れの未完了TODO）- 現在表示中のTODOから計算
+  const carryOverTodos = filteredTodos.filter(
+    (todo) => todo.deadline && isOverdue(todo.deadline) && todo.status !== 'completed'
+  );
 
   // プロジェクト別にグルーピング
   const groupedTodos = filteredTodos.reduce(
@@ -208,6 +205,23 @@ export const TodoView = ({ selectedProjects = [] }: TodoViewProps) => {
           <CheckSquareOutlined />
           <span>TODO</span>
           <Badge count={counts.pending + counts.in_progress} style={{ backgroundColor: '#1890ff' }} />
+          {carryOverTodos.length > 0 && (
+            <span style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: 4, 
+              marginLeft: 8,
+              padding: '2px 8px',
+              backgroundColor: '#fff7e6',
+              border: '1px solid #ffd591',
+              borderRadius: 4,
+              fontSize: 11,
+              color: '#d46b08',
+            }}>
+              <WarningOutlined />
+              <span>{carryOverTodos.length}件期限切れ</span>
+            </span>
+          )}
         </Space>
       }
       extra={
@@ -246,32 +260,8 @@ export const TodoView = ({ selectedProjects = [] }: TodoViewProps) => {
           {/* タブバー */}
           <TodoTabBar filter={filter} counts={counts} onFilterChange={setFilter} />
 
-          {/* 期限切れアラート */}
-          {carryOverTodos.length > 0 && (
-            <div style={{ padding: '12px 12px 0 12px' }}>
-              <Alert
-                type="warning"
-                showIcon
-                icon={<WarningOutlined />}
-                message={`${carryOverTodos.length}件の期限切れTODOがあります`}
-              />
-            </div>
-          )}
-
-          {/* 検索 */}
-          <div style={{ padding: 12, flexShrink: 0 }}>
-            <Input
-              placeholder="タスクを検索..."
-              prefix={<SearchOutlined />}
-              size="small"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              allowClear
-            />
-          </div>
-
           {/* TODOリスト */}
-          <div style={{ flex: 1, overflow: 'auto', padding: '0 12px 12px 12px' }}>
+          <div style={{ flex: 1, overflow: 'auto', padding: '12px 12px 12px 12px' }}>
             {Object.entries(groupedTodos).map(([key, todos]) => (
               <div key={key} style={{ marginBottom: 16 }}>
                 <div
