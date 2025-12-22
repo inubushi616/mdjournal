@@ -1,6 +1,6 @@
 {
   "name": "mdjournal",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Markdown日報を視覚的に管理するダッシュボードアプリケーション",
   "type": "module",
   "main": "dist/index.js",
@@ -12,10 +12,12 @@
     "dev": "tsx src/cli.ts",
     "dev:watch": "tsx watch src/cli.ts",
     "build": "tsc",
+    "build:full": "tsc && npm run copy:client",
+    "copy:client": "cp -r ../client/dist ./dist/client",
     "start": "node dist/cli.js",
     "test": "echo \"No tests yet\" && exit 0",
     "lint": "eslint src",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build:full"
   },
   "dependencies": {
     "cors": "^2.8.5",

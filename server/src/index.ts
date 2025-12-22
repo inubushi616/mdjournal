@@ -74,8 +74,23 @@ app.use('/api/*', (_req: Request, res: Response) => {
 });
 
 // 静的ファイルの配信（クライアントビルド）
-const clientDistPath = process.env.CLIENT_DIST || path.join(__dirname, '..', '..', 'client', 'dist');
-if (fs.existsSync(clientDistPath)) {
+// パッケージ配布時: dist/client、開発時: ../../client/dist
+const findClientDist = (): string | null => {
+  const candidates = [
+    process.env.CLIENT_DIST,
+    path.join(__dirname, 'client'),                    // パッケージ配布時 (dist/client)
+    path.join(__dirname, '..', '..', 'client', 'dist'), // 開発時 (../../client/dist)
+  ].filter(Boolean) as string[];
+  
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate) && fs.existsSync(path.join(candidate, 'index.html'))) {
+      return candidate;
+    }
+  }
+  return null;
+};
+const clientDistPath = findClientDist();
+if (clientDistPath) {
   console.log(`クライアント配信: ${clientDistPath}`);
   app.use(express.static(clientDistPath));
   
@@ -97,7 +112,7 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 // サーバー起動
 const paths = getConfigPaths();
-const hasClient = fs.existsSync(clientDistPath);
+const hasClient = clientDistPath !== null;
 app.listen(PORT, () => {
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
