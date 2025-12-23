@@ -113,7 +113,7 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 // サーバー起動
 const paths = getConfigPaths();
 const hasClient = clientDistPath !== null;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║         日報管理ダッシュボード                            ║
@@ -128,6 +128,31 @@ app.listen(PORT, () => {
 ║    reports:   ${(paths.reports || '(未設定)').slice(-42).padEnd(42)}║
 ╚═══════════════════════════════════════════════════════════╝
 `);
+});
+
+// ポート使用中エラーのハンドリング
+server.on('error', (err: NodeJS.ErrnoException) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`
+╔══════════════════════════════════════════════════════════════╗
+║                      起動エラー                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+✗ ポート ${PORT} は既に使用されています。
+
+以下のいずれかを試してください:
+  1. 別のポートを指定して起動:
+     npx mdjournal -p 3200
+
+  2. ポート ${PORT} を使用しているプロセスを終了:
+     lsof -ti:${PORT} | xargs kill -9
+
+`);
+    process.exit(1);
+  } else {
+    console.error('サーバー起動エラー:', err);
+    process.exit(1);
+  }
 });
 
 export default app;
