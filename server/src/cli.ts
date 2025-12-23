@@ -10,6 +10,7 @@
  */
 
 import fs from 'fs/promises';
+import { existsSync } from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import matter from 'gray-matter';
@@ -628,27 +629,60 @@ async function runServer(args: ServerArgs): Promise<void> {
     
     console.log(`設定ファイル: ${configAbsolutePath}`);
   } else {
-    // デフォルト: サンプルデータを使用
-    const samplePath = path.join(__dirname, '..', 'sample');
-    const sampleConfigPath = path.join(samplePath, 'mdjournal.config.yaml');
+    // カレントディレクトリのmdjournal.config.yamlを探す
+    const cwdConfigPath = path.join(process.cwd(), 'mdjournal.config.yaml');
     
-    // サンプル設定のバリデーション（エラーは警告として表示、起動は継続）
-    try {
-      const validationResult = await validateConfigFiles(sampleConfigPath);
+    if (existsSync(cwdConfigPath)) {
+      // カレントディレクトリに設定ファイルがある場合はそれを使用
+      console.log(`設定ファイルを検出: ${cwdConfigPath}`);
+      
+      const validationResult = await validateConfigFiles(cwdConfigPath);
       if (!validationResult.valid) {
-        console.log('\x1b[33mサンプルデータの設定に問題があります:\x1b[0m');
         console.log(formatValidationResults(validationResult));
-        console.log('');
+        const hasErrors = validationResult.errors.some(e => e.severity === 'error');
+        if (hasErrors) {
+          console.log('\n\x1b[31m設定ファイルにエラーがあります。修正してから再度実行してください。\x1b[0m\n');
+          process.exit(1);
+        }
       }
-    } catch {
-      // サンプルがない場合は無視
+      
+      const rootConfig = await loadRootConfig(cwdConfigPath);
+      
+      if (rootConfig.projects) process.env.CONFIG_PROJECTS = rootConfig.projects;
+      if (rootConfig.routines) process.env.CONFIG_ROUTINES = rootConfig.routines;
+      if (rootConfig.reports) process.env.CONFIG_REPORTS = rootConfig.reports;
+      if (rootConfig.server?.port) process.env.PORT = String(rootConfig.server.port);
+      if (rootConfig.server?.cors) process.env.CORS_ORIGIN = rootConfig.server.cors;
+      
+      if (rootConfig.timeline) {
+        setTimelineConfig(rootConfig.timeline);
+      }
+      setRootConfig(rootConfig as Record<string, unknown>);
+      
+      console.log(`設定ファイル: ${cwdConfigPath}`);
+    } else {
+      // デフォルト: サンプルデータを使用
+      const samplePath = path.join(__dirname, '..', 'sample');
+      const sampleConfigPath = path.join(samplePath, 'mdjournal.config.yaml');
+      
+      // サンプル設定のバリデーション（エラーは警告として表示、起動は継続）
+      try {
+        const validationResult = await validateConfigFiles(sampleConfigPath);
+        if (!validationResult.valid) {
+          console.log('\x1b[33mサンプルデータの設定に問題があります:\x1b[0m');
+          console.log(formatValidationResults(validationResult));
+          console.log('');
+        }
+      } catch {
+        // サンプルがない場合は無視
+      }
+      
+      process.env.CONFIG_PROJECTS = path.join(samplePath, 'config', 'projects.yaml');
+      process.env.CONFIG_ROUTINES = path.join(samplePath, 'config', 'routines.yaml');
+      process.env.CONFIG_REPORTS = path.join(samplePath, 'reports');
+      
+      console.log('サンプルデータで起動します');
     }
-    
-    process.env.CONFIG_PROJECTS = path.join(samplePath, 'config', 'projects.yaml');
-    process.env.CONFIG_ROUTINES = path.join(samplePath, 'config', 'routines.yaml');
-    process.env.CONFIG_REPORTS = path.join(samplePath, 'reports');
-    
-    console.log('サンプルデータで起動します');
   }
   
   // コマンドライン引数のポートを優先
