@@ -123,9 +123,9 @@ app.listen(PORT, () => {
 ║  Client:    ${hasClient ? '配信中'.padEnd(43) : '未ビルド（npm run build in client）'.padEnd(43)}║
 ╠═══════════════════════════════════════════════════════════╣
 ║  設定ファイル:                                            ║
-║    projects:  ${paths.projects.slice(-42).padEnd(42)}║
-║    routines:  ${paths.routines.slice(-42).padEnd(42)}║
-║    reports:   ${paths.reports.slice(-42).padEnd(42)}║
+║    projects:  ${(paths.projects || '(未設定)').slice(-42).padEnd(42)}║
+║    routines:  ${(paths.routines || '(未設定)').slice(-42).padEnd(42)}║
+║    reports:   ${(paths.reports || '(未設定)').slice(-42).padEnd(42)}║
 ╚═══════════════════════════════════════════════════════════╝
 `);
 });

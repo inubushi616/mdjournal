@@ -110,14 +110,15 @@ export function validateRootConfig(config: unknown, filePath: string): ConfigVal
     });
   }
 
-  if (!c.routines) {
-    errors.push({
-      file: filePath,
-      path: 'routines',
-      message: 'ルーチン設定ファイル (routines) が指定されていません',
-      severity: 'error',
-    });
-  }
+  // routinesはオプショナル（未指定でも起動可能）
+  // if (!c.routines) {
+  //   errors.push({
+  //     file: filePath,
+  //     path: 'routines',
+  //     message: 'ルーチン設定ファイル (routines) が指定されていません',
+  //     severity: 'warning',
+  //   });
+  // }
 
   // タイムライン設定の警告チェック
   if (c.timeline) {

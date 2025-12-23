@@ -438,39 +438,59 @@ function parseReportFromMarkdown(date: string, content: string): DailyReport {
       }
     }
 
-    // TODO のパース（新形式: - [x] @2025-12-18 !!! タスク名）
+    // TODO のパース
     if (currentSection === 'todo' && line.startsWith('-')) {
-      // 新形式: - [x] @YYYY-MM-DD !!! タスク名
-      const newFormatMatch = line.match(/^-\s+\[([xX\s*\->])\]\s+(?:@(\d{4}-\d{2}-\d{2})\s+)?(?:(!!!|!!|!)\s+)?(.+)$/);
-      if (newFormatMatch) {
-        const priorityMap: Record<string, TodoItem['priority']> = {
-          '!!!': 'high',
-          '!!': 'medium',
-          '!': 'low',
-        };
+      const todoMatch = line.match(/^-\s+\[([xX\s*\->])\]\s+(.+)$/);
+      if (todoMatch) {
+        const statusMark = todoMatch[1];
+        let taskText = todoMatch[2];
+        let todoProject = currentTodoProject;
+        let deadline: string | undefined;
+        let priority: TodoItem['priority'] | undefined;
+        
+        // プロジェクトコードを先頭から抽出 ([PXX] 形式)
+        const projectMatch = taskText.match(/^\[([^\]]+)\]\s*/);
+        if (projectMatch) {
+          todoProject = projectMatch[1];
+          taskText = taskText.substring(projectMatch[0].length);
+        }
+        
+        // 優先度を抽出 - 先頭にある場合（!!!:高, !!:中, !:低）
+        const priorityMatch = taskText.match(/^(!!!|!!|!)\s*/);
+        if (priorityMatch) {
+          const mark = priorityMatch[1];
+          priority = mark === '!!!' ? 'high' : mark === '!!' ? 'medium' : 'low';
+          taskText = taskText.substring(priorityMatch[0].length);
+        }
+        
+        // 期日を抽出 - 末尾または先頭から探す
+        const deadlineEndMatch = taskText.match(/\s*@(\d{4}-\d{2}-\d{2}|\d{2}-\d{2})$/);
+        if (deadlineEndMatch) {
+          deadline = deadlineEndMatch[1];
+          taskText = taskText.substring(0, taskText.length - deadlineEndMatch[0].length);
+        } else {
+          const deadlineStartMatch = taskText.match(/^@(\d{4}-\d{2}-\d{2}|\d{2}-\d{2})\s*/);
+          if (deadlineStartMatch) {
+            deadline = deadlineStartMatch[1];
+            taskText = taskText.substring(deadlineStartMatch[0].length);
+          }
+        }
+        
+        // 年がない場合は今年を補完
+        if (deadline && deadline.length === 5) {
+          deadline = `${new Date().getFullYear()}-${deadline}`;
+        }
+        
         const todo: TodoItem = {
           id: `t${i}`,
-          status: parseStatusMark(newFormatMatch[1]),
-          project: currentTodoProject,
-          deadline: newFormatMatch[2],
-          priority: newFormatMatch[3] ? priorityMap[newFormatMatch[3]] : undefined,
-          task: newFormatMatch[4].trim(),
+          status: parseStatusMark(statusMark),
+          project: todoProject,
+          task: taskText.trim(),
+          deadline,
+          priority,
         };
         report.todos.push(todo);
         continue;
-      }
-      
-      // 旧形式: - [x] [プロジェクト] タスク名（期限）
-      const oldFormatMatch = line.match(/^-\s+\[([xX\s*\->])\]\s+(?:\[([^\]]+)\]\s+)?(.+?)(?:（([^）]+)）)?$/);
-      if (oldFormatMatch) {
-        const todo: TodoItem = {
-          id: `t${i}`,
-          status: parseStatusMark(oldFormatMatch[1]),
-          project: oldFormatMatch[2] || currentTodoProject,
-          task: oldFormatMatch[3],
-          deadline: oldFormatMatch[4],
-        };
-        report.todos.push(todo);
       }
     }
 
