@@ -3,7 +3,7 @@
  * 1日の計画と実績を時間軸で表示
  */
 
-import { Card, Space, Tag, Typography, Button, message, Input } from 'antd';
+import { Card, Space, Tag, Typography, Button, message, Input, Modal } from 'antd';
 import {
   ClockCircleOutlined,
   CheckCircleOutlined,
@@ -11,6 +11,7 @@ import {
   EditOutlined,
   CheckOutlined,
   CloseOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons';
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import dayjs from 'dayjs';
@@ -38,10 +39,20 @@ interface TimelineViewProps {
   selectedProjects?: string[];
 }
 
+// プロジェクト別稼働時間の集計結果
+interface ProjectSummary {
+  project: string;
+  projectName: string;
+  color: string;
+  planMinutes: number;
+  resultMinutes: number;
+}
+
 export const TimelineView = ({ selectedDate, selectedProjects = [] }: TimelineViewProps) => {
   const { report, config } = useDashboard();
   
   const [isEditing, setIsEditing] = useState(false);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const resultAreaRef = useRef<HTMLDivElement>(null);
@@ -238,6 +249,42 @@ export const TimelineView = ({ selectedDate, selectedProjects = [] }: TimelineVi
     [resultSlots]
   );
 
+  // プロジェクト別稼働時間の集計
+  const projectSummary = useMemo((): ProjectSummary[] => {
+    // プランからプロジェクト別に集計
+    const planByProject = new Map<string, number>();
+    for (const slot of allPlanSlots) {
+      if (slot.project && !slot.isBreak) {
+        planByProject.set(slot.project, (planByProject.get(slot.project) || 0) + slot.duration);
+      }
+    }
+
+    // 実績からプロジェクト別に集計
+    const resultByProject = new Map<string, number>();
+    for (const slot of allResultSlots) {
+      if (slot.project && !slot.isBreak) {
+        resultByProject.set(slot.project, (resultByProject.get(slot.project) || 0) + slot.duration);
+      }
+    }
+
+    // すべてのプロジェクトを統合
+    const allProjects = new Set([...planByProject.keys(), ...resultByProject.keys()]);
+
+    // 結果を配列に変換し、実績時間の降順でソート
+    return Array.from(allProjects)
+      .map((projectCode) => {
+        const proj = projects.find(p => p.code === projectCode);
+        return {
+          project: projectCode,
+          projectName: proj?.name || projectCode,
+          color: proj?.color || '#999',
+          planMinutes: planByProject.get(projectCode) || 0,
+          resultMinutes: resultByProject.get(projectCode) || 0,
+        };
+      })
+      .sort((a, b) => b.resultMinutes - a.resultMinutes || b.planMinutes - a.planMinutes);
+  }, [allPlanSlots, allResultSlots, projects]);
+
   // 編集モード切替
   const handleToggleEdit = () => {
     if (!isEditing && currentReport) {
@@ -302,9 +349,14 @@ export const TimelineView = ({ selectedDate, selectedProjects = [] }: TimelineVi
               </Button>
             </>
           ) : (
-            <Button type="primary" size="small" icon={<EditOutlined />} onClick={handleToggleEdit}>
-              編集
-            </Button>
+            <>
+              <Button size="small" icon={<BarChartOutlined />} onClick={() => setIsSummaryOpen(true)}>
+                集計
+              </Button>
+              <Button type="primary" size="small" icon={<EditOutlined />} onClick={handleToggleEdit}>
+                編集
+              </Button>
+            </>
           )}
         </Space>
       }
@@ -548,6 +600,142 @@ export const TimelineView = ({ selectedDate, selectedProjects = [] }: TimelineVi
           </div>
         </div>
       )}
+
+      {/* 集計モーダル */}
+      <Modal
+        title={
+          <Space>
+            <BarChartOutlined />
+            <span>プロジェクト別稼働時間</span>
+            <Tag>{selectedDate.format('MM/DD (ddd)')}</Tag>
+          </Space>
+        }
+        open={isSummaryOpen}
+        onCancel={() => setIsSummaryOpen(false)}
+        footer={null}
+        width={600}
+      >
+        <div style={{ padding: '16px 0' }}>
+          {/* 合計 */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-around', 
+            marginBottom: 24,
+            padding: '12px 16px',
+            background: '#fafafa',
+            borderRadius: 8,
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>計画</Text>
+              <div>
+                <Text strong style={{ fontSize: 20, color: '#1890ff' }}>
+                  {formatDuration(totalPlanMinutes)}
+                </Text>
+              </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>実績</Text>
+              <div>
+                <Text strong style={{ fontSize: 20, color: '#52c41a' }}>
+                  {formatDuration(totalResultMinutes)}
+                </Text>
+              </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>差分</Text>
+              <div>
+                <Text 
+                  strong 
+                  style={{ 
+                    fontSize: 20, 
+                    color: totalResultMinutes >= totalPlanMinutes ? '#52c41a' : '#ff4d4f' 
+                  }}
+                >
+                  {totalResultMinutes >= totalPlanMinutes ? '+' : '-'}
+                  {formatDuration(Math.abs(totalResultMinutes - totalPlanMinutes))}
+                </Text>
+              </div>
+            </div>
+          </div>
+
+          {/* プロジェクト別棒グラフ */}
+          {projectSummary.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {projectSummary.map((item) => {
+                const maxMinutes = Math.max(
+                  ...projectSummary.map(p => Math.max(p.planMinutes, p.resultMinutes)),
+                  60 // 最低1時間幅を確保
+                );
+                const planWidth = (item.planMinutes / maxMinutes) * 100;
+                const resultWidth = (item.resultMinutes / maxMinutes) * 100;
+
+                return (
+                  <div key={item.project} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {/* プロジェクト名 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div 
+                        style={{ 
+                          width: 12, 
+                          height: 12, 
+                          borderRadius: 2, 
+                          background: item.color,
+                          flexShrink: 0,
+                        }} 
+                      />
+                      <Text strong style={{ fontSize: 13 }}>
+                        [{item.project}] {item.projectName}
+                      </Text>
+                    </div>
+                    
+                    {/* 棒グラフ */}
+                    <div style={{ marginLeft: 20 }}>
+                      {/* 計画 */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                        <Text type="secondary" style={{ fontSize: 11, width: 32 }}>計画</Text>
+                        <div style={{ flex: 1, height: 16, background: '#f0f0f0', borderRadius: 2, overflow: 'hidden' }}>
+                          <div 
+                            style={{ 
+                              width: `${planWidth}%`, 
+                              height: '100%', 
+                              background: `linear-gradient(90deg, ${item.color}88, ${item.color}cc)`,
+                              transition: 'width 0.3s ease',
+                            }} 
+                          />
+                        </div>
+                        <Text style={{ fontSize: 12, width: 50, textAlign: 'right', color: '#1890ff' }}>
+                          {formatDuration(item.planMinutes)}
+                        </Text>
+                      </div>
+                      
+                      {/* 実績 */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Text type="secondary" style={{ fontSize: 11, width: 32 }}>実績</Text>
+                        <div style={{ flex: 1, height: 16, background: '#f0f0f0', borderRadius: 2, overflow: 'hidden' }}>
+                          <div 
+                            style={{ 
+                              width: `${resultWidth}%`, 
+                              height: '100%', 
+                              background: item.color,
+                              transition: 'width 0.3s ease',
+                            }} 
+                          />
+                        </div>
+                        <Text style={{ fontSize: 12, width: 50, textAlign: 'right', color: '#52c41a' }}>
+                          {formatDuration(item.resultMinutes)}
+                        </Text>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: 40 }}>
+              <Text type="secondary">データがありません</Text>
+            </div>
+          )}
+        </div>
+      </Modal>
     </Card>
   );
 };
