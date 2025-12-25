@@ -14,6 +14,7 @@ import { ReportEditor } from '../Editor';
 import { useReport, useConfig, useCalendar, useUnsavedReports } from '../../hooks';
 import { reportApi } from '../../api';
 import type { RoutineItem, ScheduleItem } from '../../types';
+import './Dashboard.css';
 
 dayjs.locale('ja');
 
@@ -311,10 +312,10 @@ export const Dashboard = () => {
           />
 
           <Content
+            className="dashboard-content"
             style={{
               padding: 16,
               background: '#f0f2f5',
-              overflow: 'hidden',
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
@@ -323,21 +324,16 @@ export const Dashboard = () => {
             {/* Flex Layout: Timeline | Resizer | TODO | Calendar/Project */}
             <div
               ref={containerRef}
-              style={{
-                display: 'flex',
-                flex: 1,
-                minHeight: 0,
-              }}
+              className="dashboard-container"
             >
               {/* Left: Timeline */}
-              <div style={{ 
-                width: timelineWidth ?? undefined,
-                flex: timelineWidth ? undefined : 1,
-                minWidth: 200, 
-                minHeight: 0, 
-                overflow: 'hidden',
-                marginRight: 4,
-              }}>
+              <div 
+                className="dashboard-timeline"
+                style={{ 
+                  width: timelineWidth ?? undefined,
+                  flex: timelineWidth ? undefined : 1,
+                }}
+              >
                 <TimelineView 
                   selectedDate={selectedDate}
                   onEditClick={() => setEditorOpen(true)}
@@ -347,32 +343,14 @@ export const Dashboard = () => {
 
               {/* Resizer */}
               <div
+                className="dashboard-resizer"
                 onMouseDown={handleResizeStart}
-                style={{
-                  width: 8,
-                  cursor: 'col-resize',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  zIndex: 10,
-                }}
               >
-                <div
-                  style={{
-                    width: 3,
-                    height: 32,
-                    background: '#d9d9d9',
-                    borderRadius: 2,
-                    transition: 'background 0.2s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#1890ff')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = '#d9d9d9')}
-                />
+                <div className="dashboard-resizer-handle" />
               </div>
 
               {/* Center: TODO */}
-              <div style={{ flex: 1, minWidth: 200, minHeight: 0, overflow: 'hidden', marginLeft: 4, marginRight: 16 }}>
+              <div className="dashboard-todo">
                 <TodoView 
                   selectedDate={selectedDate} 
                   selectedProjects={selectedProjects}
@@ -380,9 +358,9 @@ export const Dashboard = () => {
               </div>
 
               {/* Right: Calendar & Project */}
-              <div style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16, minHeight: 0 }}>
+              <div className="dashboard-right-column">
                 {/* Calendar */}
-                <div style={{ flexShrink: 0 }}>
+                <div className="dashboard-calendar">
                   <CalendarView
                     selectedDate={selectedDate}
                     onDateSelect={handleDateSelect}
@@ -391,7 +369,7 @@ export const Dashboard = () => {
                 </div>
 
                 {/* Project */}
-                <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                <div className="dashboard-project">
                   <ProjectView 
                     selectedProjects={selectedProjects}
                     onToggleProject={handleToggleProject}

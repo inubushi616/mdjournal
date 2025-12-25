@@ -1,0 +1,320 @@
+/* Dashboard レスポンシブレイアウト */
+
+/* コンテンツエリア */
+.dashboard-content {
+  overflow: hidden;
+}
+
+.dashboard-container {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 0; /* デスクトップではgapを0に（リサイザーが間にある） */
+}
+
+/* タイムライン */
+.dashboard-timeline {
+  min-width: 200px;
+  min-height: 0;
+  overflow: hidden;
+  margin-right: 4px;
+}
+
+/* リサイザー */
+.dashboard-resizer {
+  width: 8px;
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.dashboard-resizer-handle {
+  width: 3px;
+  height: 32px;
+  background: #d9d9d9;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.dashboard-resizer-handle:hover {
+  background: #1890ff;
+}
+
+/* TODOエリア */
+.dashboard-todo {
+  flex: 1;
+  min-width: 200px;
+  min-height: 0;
+  overflow: hidden;
+  margin-left: 4px;
+  margin-right: 16px;
+}
+
+/* 右カラム（カレンダー＋プロジェクト） */
+.dashboard-right-column {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+/* カレンダー */
+.dashboard-calendar {
+  flex-shrink: 0;
+}
+
+/* プロジェクト */
+.dashboard-project {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ===== デスクトップ（デフォルト） ===== */
+/* 横並び: Timeline | Resizer | TODO | Calendar/Project */
+
+/* ===== タブレット（768px〜1023px）===== */
+/* 3行: Timeline / TODO / Calendar+Project横並び */
+/* コンテンツ全体を縦に表示し、ページ全体でスクロール */
+@media (max-width: 1023px) {
+  .dashboard-content {
+    overflow-y: auto !important;
+  }
+
+  .dashboard-container {
+    flex-direction: column;
+    gap: 12px;
+    overflow: visible;
+    flex: none;
+    height: auto;
+  }
+
+  .dashboard-timeline {
+    width: 100% !important;
+    flex: none !important;
+    height: auto;
+    min-height: 0;
+    margin-right: 0;
+    overflow: visible;
+  }
+
+  /* タイムライン内のCardを高さ自動に */
+  .dashboard-timeline > div {
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* タイムライン内部のスクロールを完全に無効化 */
+  .dashboard-timeline .ant-card-body {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .dashboard-timeline .ant-card-body > div {
+    overflow: visible !important;
+    min-height: auto !important;
+    flex: none !important;
+  }
+
+  .dashboard-timeline .ant-card-body > div > div {
+    overflow: visible !important;
+    flex: none !important;
+  }
+
+  /* タイムラインのスクロールエリア（timelineRef）を全体表示 */
+  .dashboard-timeline .ant-card-body div[style*="overflow"] {
+    overflow: visible !important;
+  }
+
+  .dashboard-resizer {
+    display: none;
+  }
+
+  .dashboard-todo {
+    flex: none;
+    height: auto;
+    min-height: 0;
+    margin-left: 0;
+    margin-right: 0;
+    overflow: visible;
+  }
+
+  /* TODO内のCardを高さ自動に */
+  .dashboard-todo > div {
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  .dashboard-todo .ant-card-body {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .dashboard-todo .ant-card-body > div {
+    overflow: visible !important;
+  }
+
+  .dashboard-right-column {
+    width: 100%;
+    flex-direction: row;
+    height: auto;
+    min-height: 0;
+    gap: 12px;
+    align-items: stretch; /* カレンダーとプロジェクトの高さを揃える */
+  }
+
+  .dashboard-calendar {
+    flex: 1;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* カレンダー内のCardを高さいっぱいに */
+  .dashboard-calendar > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dashboard-project {
+    flex: 1;
+    min-width: 200px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* プロジェクト内のCardを高さいっぱいに、内部はスクロール */
+  .dashboard-project > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .dashboard-project .ant-card-body {
+    flex: 1;
+    overflow-y: auto !important;
+  }
+}
+
+/* ===== スマホ（<768px）===== */
+/* 4行: Timeline / TODO / Calendar / Project */
+/* コンテンツ全体を縦に表示し、ページ全体でスクロール */
+@media (max-width: 767px) {
+  .dashboard-content {
+    overflow-y: auto !important;
+  }
+
+  .dashboard-container {
+    flex-direction: column;
+    gap: 8px;
+    overflow: visible;
+    flex: none;
+    height: auto;
+  }
+
+  .dashboard-timeline {
+    width: 100% !important;
+    flex: none !important;
+    height: auto;
+    min-height: 0;
+    margin-right: 0;
+    overflow: visible;
+  }
+
+  /* タイムライン内のCardを高さ自動に */
+  .dashboard-timeline > div {
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* タイムライン内部のスクロールを完全に無効化 */
+  .dashboard-timeline .ant-card-body {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .dashboard-timeline .ant-card-body > div {
+    overflow: visible !important;
+    min-height: auto !important;
+    flex: none !important;
+  }
+
+  .dashboard-timeline .ant-card-body > div > div {
+    overflow: visible !important;
+    flex: none !important;
+  }
+
+  .dashboard-timeline .ant-card-body div[style*="overflow"] {
+    overflow: visible !important;
+  }
+
+  .dashboard-resizer {
+    display: none;
+  }
+
+  .dashboard-todo {
+    flex: none;
+    height: auto;
+    min-height: 0;
+    margin-left: 0;
+    margin-right: 0;
+    overflow: visible;
+  }
+
+  /* TODO内部のスクロールを無効化 */
+  .dashboard-todo > div {
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  .dashboard-todo .ant-card-body {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .dashboard-todo .ant-card-body > div {
+    overflow: visible !important;
+  }
+
+  .dashboard-right-column {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+    height: auto;
+  }
+
+  .dashboard-calendar {
+    flex: none;
+    width: 100%;
+  }
+
+  .dashboard-project {
+    flex: none;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* プロジェクト内部も全体表示（スクロールなし） */
+  .dashboard-project > div {
+    height: auto !important;
+  }
+
+  .dashboard-project .ant-card-body {
+    overflow: visible !important;
+    height: auto !important;
+  }
+}
+
+/* ===== 超小型デバイス（<480px）===== */
+@media (max-width: 479px) {
+  /* スマホサイズと同様、全体表示 */
+}

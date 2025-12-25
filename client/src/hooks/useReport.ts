@@ -195,7 +195,7 @@ export function useReport(initialDate?: string): UseReportReturn {
       if (!prev) return null;
       const newTodo: TodoItem = {
         ...todo,
-        id: `t${Date.now()}`,
+        id: `t${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       };
       return { ...prev, todos: [...prev.todos, newTodo] };
     });
@@ -253,7 +253,7 @@ export function useReport(initialDate?: string): UseReportReturn {
       if (!prev) return null;
       const newItem: ScheduleItem = {
         ...item,
-        id: `${type[0]}${Date.now()}`,
+        id: `${type[0]}${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       };
       const items = [...prev[type], newItem].sort((a, b) => a.time.localeCompare(b.time));
       return { ...prev, [type]: items };

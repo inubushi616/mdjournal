@@ -139,7 +139,7 @@ export function useTimelineDrag({
         
         // 休憩アイテムを作成
         const breakItem: ScheduleItem = {
-          id: `r${Date.now()}`,
+          id: `r${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
           time: newTime,
           project: '---',
           task: '休憩',
@@ -167,7 +167,7 @@ export function useTimelineDrag({
           
           // 新しいアイテムを作成（durationは持たない）
           const newItem: ScheduleItem = {
-            id: `r${Date.now()}`,
+            id: `r${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
             time: newTime,
             project: planItem.project,
             task: planItem.task,

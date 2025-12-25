@@ -17,6 +17,7 @@ import dayjs from 'dayjs';
 import { useDashboard } from './DashboardContext';
 import { gitApi } from '../../api/client';
 import type { ExtendedGitStatus } from '../../types';
+import './DashboardHeader.css';
 
 const { TextArea } = Input;
 
@@ -239,9 +240,9 @@ export const DashboardHeader = ({
     >
       {/* Left: Logo & Date */}
       <Space size="large">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="dashboard-title" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <CalendarOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-          <Text strong style={{ fontSize: 18 }}>
+          <Text className="dashboard-title-text" strong style={{ fontSize: 18 }}>
             日報ダッシュボード
           </Text>
         </div>

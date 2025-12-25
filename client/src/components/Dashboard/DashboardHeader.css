@@ -1,0 +1,9 @@
+/* DashboardHeader レスポンシブスタイル */
+
+/* スマホサイズでタイトル文字列のみ非表示（アイコンは残す） */
+@media (max-width: 767px) {
+  .dashboard-title-text {
+    display: none !important;
+  }
+}
+
