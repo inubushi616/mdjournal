@@ -10,6 +10,10 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+
+# Build artifacts (copied from root)
+README.md
+docs/
 *.local
 
 # Editor directories and files

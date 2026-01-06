@@ -1,6 +1,6 @@
 {
   "name": "mdjournal",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "Markdown日報を視覚的に管理するダッシュボードアプリケーション",
   "type": "module",
   "main": "dist/index.js",
@@ -12,8 +12,9 @@
     "dev": "tsx src/cli.ts",
     "dev:watch": "tsx watch src/cli.ts",
     "build": "tsc",
-    "build:full": "tsc && npm run copy:client",
+    "build:full": "tsc && npm run copy:client && npm run copy:docs",
     "copy:client": "cp -r ../client/dist ./dist/client",
+    "copy:docs": "cp ../README.md ./README.md && cp -r ../docs ./docs",
     "start": "node dist/cli.js",
     "test": "echo \"No tests yet\" && exit 0",
     "lint": "eslint src",
@@ -43,7 +44,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "docs"
   ],
   "keywords": [
     "daily-report",
