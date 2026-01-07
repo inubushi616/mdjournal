@@ -1,0 +1,13 @@
+# mdjournal.config.yaml
+projects: ./config/projects.yaml
+routines: ./config/routines.yaml
+reports: ./data
+
+timeline:
+  snapMinutes: 15         # ドラッグ時のスナップ単位（分）
+  defaultStartHour: 8     # 表示開始時刻
+  defaultEndHour: 20      # 表示終了時刻
+
+server:
+  port: 3001
+  
